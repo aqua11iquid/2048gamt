@@ -48,3 +48,24 @@
 <div id="score-board">Счёт: <span id="score">0</span></div>
 <p>Используйте стрелки ← ↑ ↓ →</p>
 <div id="game"></div>
+
+<script>
+const game = document.getElementById('game');
+const scoreEl = document.getElementById('score');
+let board = Array(4).fill().map(()=>Array(4).fill(0));
+let score = 0;
+
+function drawBoard() {
+  game.innerHTML = '';
+  for (let row of board) {
+    for (let cell of row) {
+      const div = document.createElement('div');
+      div.className = 'cell';
+      if (cell) div.textContent = cell;
+      div.style.background = cell ? '#ede0c8' : '#cdc1b4';
+      game.appendChild(div);
+    }
+  }
+  scoreEl.textContent = score;
+
+}
