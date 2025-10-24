@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2048</title>
+<style>
+  body {
+    background: #faf8ef;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 30px;
+  }
+  #score-board {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #776e65;
+  }
+  #game {
+    width: 400px;
+    height: 400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 5px;
+    background: #bbada0;
+    padding: 5px;
+    border-radius: 10px;
+  }
+  .cell {
+    width: 90px;
+    height: 90px;
+    background: #cdc1b4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    font-weight: bold;
+    border-radius: 5px;
+    color: #776e65;
+  }
