@@ -3,20 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2048</title>
+<title>2048 </title>
 <style>
   body {
-    background: #faf8ef;
-    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #232526, #414345);
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #f8f8f8;
     text-align: center;
-    margin-top: 30px;
+    margin-top: 40px;
   }
+
+  h1 {
+    font-size: 48px;
+    margin-bottom: 10px;
+    color: #ffce00;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
+  }
+
   #score-board {
     font-size: 24px;
     font-weight: bold;
-    margin-bottom: 10px;
-    color: #776e65;
+    margin-bottom: 15px;
+    color: #fffae6;
   }
+
   #game {
     width: 400px;
     height: 400px;
@@ -24,21 +34,63 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-gap: 5px;
-    background: #bbada0;
+    background: #3b3b3b;
     padding: 5px;
-    border-radius: 10px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
   }
+
   .cell {
     width: 90px;
     height: 90px;
-    background: #cdc1b4;
+    background: #444;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 30px;
     font-weight: bold;
-    border-radius: 5px;
-    color: #776e65;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .cell:not(:empty) {
+    color: #fff;
+  }
+
+  #game-over {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(20, 20, 20, 0.85);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: #ffce00;
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+  }
+
+  button {
+    margin-top: 20px;
+    padding: 10px 25px;
+    font-size: 18px;
+    font-weight: bold;
+    background: #ffce00;
+    border: none;
+    border-radius: 8px;
+    color: #2f2f2f;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background: #ffd633;
+    transform: scale(1.05);
   }
 </style>
 </head>
@@ -46,28 +98,61 @@
 
 <h1>2048</h1>
 <div id="score-board">Счёт: <span id="score">0</span></div>
-<p>Используйте стрелки ← ↑ ↓ →</p>
-<div id="game"></div>
+<div id="game">
+  <div id="game-over">Игра окончена!</div>
+</div>
+<button id="restart">Новая игра</button>
 
 <script>
 const game = document.getElementById('game');
 const scoreEl = document.getElementById('score');
-let board = Array(4).fill().map(()=>Array(4).fill(0));
-let score = 0;
+const gameOverScreen = document.getElementById('game-over');
+const restartBtn = document.getElementById('restart');
+let board, score, gameOver;
+
+function initGame() {
+  board = Array(4).fill().map(()=>Array(4).fill(0));
+  score = 0;
+  gameOver = false;
+  gameOverScreen.style.display = 'none';
+  addRandomTile();
+  addRandomTile();
+  drawBoard();
+}
 
 function drawBoard() {
-  game.innerHTML = '';
+  game.querySelectorAll('.cell').forEach(e => e.remove());
   for (let row of board) {
     for (let cell of row) {
       const div = document.createElement('div');
       div.className = 'cell';
-      if (cell) div.textContent = cell;
-      div.style.background = cell ? '#ede0c8' : '#cdc1b4';
+      if (cell) {
+        div.textContent = cell;
+        div.style.background = getTileColor(cell);
+      } else {
+        div.style.background = '#3b3b3b';
+      }
       game.appendChild(div);
     }
   }
   scoreEl.textContent = score;
+}
 
+function getTileColor(value) {
+  const colors = {
+    2: '#8e44ad',
+    4: '#9b59b6',
+    8: '#3498db',
+    16: '#1abc9c',
+    32: '#f39c12',
+    64: '#e67e22',
+    128: '#e74c3c',
+    256: '#c0392b',
+    512: '#d35400',
+    1024: '#f1c40f',
+    2048: '#2ecc71'
+  };
+  return colors[value] || '#16a085';
 }
 
 function getEmptyCells() {
@@ -90,7 +175,7 @@ function slide(row) {
   for (let i=0;i<arr.length-1;i++) {
     if (arr[i]===arr[i+1]) {
       arr[i]*=2;
-      score += arr[i]; 
+      score += arr[i];
       arr[i+1]=0;
     }
   }
@@ -109,6 +194,7 @@ function moveLeft() {
     board[r] = slide(board[r]);
   if (JSON.stringify(board) !== old) addRandomTile();
   drawBoard();
+  checkGameOver();
 }
 
 function moveRight() {
@@ -117,10 +203,10 @@ function moveRight() {
     board[r] = slide(board[r].reverse()).reverse();
   if (JSON.stringify(board) !== old) addRandomTile();
   drawBoard();
+  checkGameOver();
 }
 
 function moveUp() {
-  let old = JSON.stringify(board);
   rotateClockwise();
   moveLeft();
   rotateClockwise();
@@ -129,7 +215,6 @@ function moveUp() {
 }
 
 function moveDown() {
-  let old = JSON.stringify(board);
   rotateClockwise();
   moveRight();
   rotateClockwise();
@@ -137,19 +222,41 @@ function moveDown() {
   rotateClockwise();
 }
 
+function canMove() {
+  if (getEmptyCells().length > 0) return true;
+  for (let r=0;r<4;r++) {
+    for (let c=0;c<4;c++) {
+      if (c<3 && board[r][c]===board[r][c+1]) return true;
+      if (r<3 && board[r][c]===board[r+1][c]) return true;
+    }
+  }
+  return false;
+}
+
+function checkGameOver() {
+  if (!canMove()) {
+    gameOver = true;
+    gameOverScreen.style.display = 'flex';
+  }
+}
+
+
 document.addEventListener('keydown', e => {
-  switch(e.key) {
-    case 'ArrowLeft': moveLeft(); break;
-    case 'ArrowRight': moveRight(); break;
-    case 'ArrowUp': moveUp(); break;
-    case 'ArrowDown': moveDown(); break;
+  if (gameOver) return;
+  switch(e.key.toLowerCase()) {
+    case 'a': moveLeft(); break;
+    case 'd': moveRight(); break;
+    case 'w': moveUp(); break;
+    case 's': moveDown(); break;
   }
 });
 
-addRandomTile();
-addRandomTile();
-drawBoard();
+
+restartBtn.addEventListener('click', initGame);
+
+initGame();
 </script>
 
 </body>
 </html>
+
